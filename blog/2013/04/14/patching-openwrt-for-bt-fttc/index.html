@@ -1,0 +1,175 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Patching OpenWRT on Netgear WNDR3700 for BT FTTC - Matt Willsher's Blog</title>
+	<meta name="author" content="Matt Willsher">
+
+	
+	<meta name="description" content="With the arrival of BT&#8217;s Fibre-to-the-Cabinet (FTTC) offering, the telco moved aware from PPPoA as the default connection protocol to PPPoE, &hellip;">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="/atom.xml" rel="alternate" title="Matt Willsher's Blog" type="application/atom+xml">
+	<link rel="canonical" href="">
+	<link href="/favicon.png" rel="shortcut icon">
+	<link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+	<!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	
+</head>
+
+<body>
+	<header id="header" class="inner"><h1><a href="/">Matt Willsher's Blog</a></h1>
+<nav id="main-nav"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</nav>
+<nav id="mobile-nav">
+	<div class="alignleft menu">
+		<a class="button">Menu</a>
+		<div class="container"><ul class="main">
+	<li><a href="/">Blog</a></li>
+	<li><a href="/blog/archives">Archives</a></li>
+</ul>
+</div>
+	</div>
+	<div class="alignright search">
+		<a class="button"></a>
+		<div class="container">
+			<form action="http://google.com/search" method="get">
+				<input type="text" name="q" results="0">
+				<input type="hidden" name="q" value="site:mattwillsh.github.com">
+			</form>
+		</div>
+	</div>
+</nav>
+<nav id="sub-nav" class="alignright">
+	<div class="social">
+		
+		
+		
+		<a class="twitter" href="http://twitter.com/mattwillsh" title="Twitter">Twitter</a>
+		
+		
+		<a class="github" href="https://github.com/mattwillsh" title="GitHub">GitHub</a>
+		
+    
+		
+		
+		
+		
+		
+		<a class="rss" href="/atom.xml" title="RSS">RSS</a>
+		
+	</div>
+	<form class="search" action="http://google.com/search" method="get">
+		<input class="alignright" type="text" name="q" results="0">
+		<input type="hidden" name="q" value="site:mattwillsh.github.com">
+	</form>
+</nav>
+
+</header>
+	
+		
+<div id="banner" class="inner">
+	<div class="container">
+		<ul class="feed"></ul>
+	</div>
+	<small><a href="http://twitter.com/mattwillsh">mattwillsh</a> @ <a href="http://twitter.com">Twitter</a></small>
+	<div class="loading">Loading...</div>
+</div>
+<script src="/javascripts/twitter.js"></script>
+<script type="text/javascript">
+	(function($){
+		$('#banner').getTwitterFeed('mattwillsh', 4, false);
+	})(jQuery);
+</script>
+
+	
+	<div id="content" class="inner"><article class="post">
+	<h2 class="title">Patching OpenWRT on Netgear WNDR3700 for BT FTTC</h2>
+	<div class="entry-content"><p>With the arrival of BT&#8217;s Fibre-to-the-Cabinet (FTTC) offering, the telco moved aware from PPPoA as the default connection protocol to PPPoE, dropping PPPoA support. When using the provided BT Homehub 3, an MTU of 1500 is supported as per <a href="https://tools.ietf.org/html/rfc4638">RFC 4638</a>
+, rather than the more usual 1492 bytes. Being able to use a MTU of 1500 bytes removes to need to use <a href="http://lartc.org/howto/lartc.cookbook.mtu-mss.html">MSS clamping</a> to work around problems with Path MTU discovery but it can create other problems. Having a larger MTU improves efficiency  as more data can be transmitted in a single packet and there is less change of packet. So using a larger MTU is a no-brainer - or it would be if not for a couple of problems.</p>
+
+<!-- more -->
+
+
+<ul>
+<li>A MTU of 1500 in the PPP session required the parent interface supports an MTU of 1508 (&#8216;baby jumbo&#8217; packets).</li>
+<li>RFC 4638 is not widely supported. I&#8217;ve yet to come across an off-the-shelf router than does.</li>
+</ul>
+
+
+<p>I&#8217;ve been running <a href="https://openwrt.org/">OpenWRT</a> on a <a href="http://www.netgear.co.uk/home/products/wirelessrouters/high-performance/WNDR3700.aspx">Netgear WNDR3700</a> for a while with MSS clamping and it&#8217;s be fine as far as I can tell - certainly the through put is good and it&#8217;s allowed me to use <a href="http://ipv6.he.net/">Hurricane Electrics IPv6 tunnel</a>, update dynamic DNS with easy and provide a raft of monitoring. But due to the above issues, supporting a 1500 MTU over PPPoE isn&#8217;t straight forward. However, it is possible by using a couple of patches and compiling OpenWRT from source. It&#8217;s not as scary as it sounds! This technique should work for the WNDR3700v1, v2 and the WNDR3800. I&#8217;ve based the work of the current stable version or OpenWRT 12.09 aka Attitude Adjustment. The <a href="http://wiki.openwrt.org/doc/howto/buildroot.exigence">Buildroot - Installation</a>, <a href="http://wiki.openwrt.org/toh/netgear/wndr3700">WNDR3700</a> and <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">Building OpenWrt for Netgear WNDR3700</a> pages are well worth reading.</p>
+
+<p>Firstly, you&#8217;ll need a machine to build OpenWRT. I&#8217;ve used Debian wheezy. <code>apt-get install build-essential subversion</code> then, somewhere convenient, <code>svn co svn://svn.openwrt.org/openwrt/branches/attitude_adjustment/</code>. In the attitude_adjustment folder run <code>make prereq</code> and check what packages are needed and install them.</p>
+
+<p>For baby jumbo support, a <a href="https://lists.openwrt.org/pipermail/openwrt-devel/2012-June/015782.html">patch</a> was submitted the openwrt-devel mailing list. It hasn&#8217;t been accepted into trunk yet, although a <a href="https://dev.openwrt.org/ticket/11347">ticket</a> does exist for it. The file paths needed editing. An <a href="https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/655-MIPS-ath79-baby-jumbo-support.patch">amended version</a> can be found in the <a href="https://github.com/mattwillsh/openwrt-wndr3x00-rfc4638">github repo</a> that goes with this post.  Put this file in target/linux/ar71xx/patches-3.3</p>
+
+<p>For support in ppp and its pppoe plugin, this <a href="http://git.ozlabs.org/?p=ppp.git;a=commit;h=fd1dcdf758418f040da3ed801ab001b5e46854e7">commit</a> adds the necessary support.  The <a href="http://git.ozlabs.org/?p=ppp.git;a=patch;h=fd1dcdf758418f040da3ed801ab001b5e46854e7">raw patch</a> can be downloaded and given a suitable name and put in packages/ppp/patches.</p>
+
+<p>The firmware can now be build using the normal <code>make menuconfig</code>, <code>make</code> process. (See the <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">building</a> page  as linked above)</p>
+</div>
+
+
+<div class="meta">
+	<div class="date">
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-04-14T18:46:00+01:00" pubdate data-updated="true">Apr 14<span>th</span>, 2013</time></div>
+	<div class="tags">
+
+
+	<a class='category' href='/blog/categories/openwrt/'>openwrt</a>
+
+
+</div>
+	
+</div></article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid="></script>
+</div>
+
+
+</div>
+	<footer id="footer" class="inner">Copyright &copy; 2013
+
+    Matt Willsher
+
+</footer>
+	<script src="/javascripts/slash.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script> <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+
+
+
+</body>
+</html>

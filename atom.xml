@@ -4,7 +4,7 @@
   <title><![CDATA[Matt Willsher's Blog]]></title>
   <link href="http://mattwillsh.github.com/atom.xml" rel="self"/>
   <link href="http://mattwillsh.github.com/"/>
-  <updated>2013-04-14T18:31:30+01:00</updated>
+  <updated>2013-04-14T20:46:17+01:00</updated>
   <id>http://mattwillsh.github.com/</id>
   <author>
     <name><![CDATA[Matt Willsher]]></name>
@@ -12,5 +12,34 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Patching OpenWRT on Netgear WNDR3700 for BT FTTC]]></title>
+    <link href="http://mattwillsh.github.com/blog/2013/04/14/patching-openwrt-for-bt-fttc/"/>
+    <updated>2013-04-14T18:46:00+01:00</updated>
+    <id>http://mattwillsh.github.com/blog/2013/04/14/patching-openwrt-for-bt-fttc</id>
+    <content type="html"><![CDATA[<p>With the arrival of BT&#8217;s Fibre-to-the-Cabinet (FTTC) offering, the telco moved aware from PPPoA as the default connection protocol to PPPoE, dropping PPPoA support. When using the provided BT Homehub 3, an MTU of 1500 is supported as per <a href="https://tools.ietf.org/html/rfc4638">RFC 4638</a>
+, rather than the more usual 1492 bytes. Being able to use a MTU of 1500 bytes removes to need to use <a href="http://lartc.org/howto/lartc.cookbook.mtu-mss.html">MSS clamping</a> to work around problems with Path MTU discovery but it can create other problems. Having a larger MTU improves efficiency  as more data can be transmitted in a single packet and there is less change of packet. So using a larger MTU is a no-brainer - or it would be if not for a couple of problems.</p>
+
+<!-- more -->
+
+
+<ul>
+<li>A MTU of 1500 in the PPP session required the parent interface supports an MTU of 1508 (&#8216;baby jumbo&#8217; packets).</li>
+<li>RFC 4638 is not widely supported. I&#8217;ve yet to come across an off-the-shelf router than does.</li>
+</ul>
+
+
+<p>I&#8217;ve been running <a href="https://openwrt.org/">OpenWRT</a> on a <a href="http://www.netgear.co.uk/home/products/wirelessrouters/high-performance/WNDR3700.aspx">Netgear WNDR3700</a> for a while with MSS clamping and it&#8217;s be fine as far as I can tell - certainly the through put is good and it&#8217;s allowed me to use <a href="http://ipv6.he.net/">Hurricane Electrics IPv6 tunnel</a>, update dynamic DNS with easy and provide a raft of monitoring. But due to the above issues, supporting a 1500 MTU over PPPoE isn&#8217;t straight forward. However, it is possible by using a couple of patches and compiling OpenWRT from source. It&#8217;s not as scary as it sounds! This technique should work for the WNDR3700v1, v2 and the WNDR3800. I&#8217;ve based the work of the current stable version or OpenWRT 12.09 aka Attitude Adjustment. The <a href="http://wiki.openwrt.org/doc/howto/buildroot.exigence">Buildroot - Installation</a>, <a href="http://wiki.openwrt.org/toh/netgear/wndr3700">WNDR3700</a> and <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">Building OpenWrt for Netgear WNDR3700</a> pages are well worth reading.</p>
+
+<p>Firstly, you&#8217;ll need a machine to build OpenWRT. I&#8217;ve used Debian wheezy. <code>apt-get install build-essential subversion</code> then, somewhere convenient, <code>svn co svn://svn.openwrt.org/openwrt/branches/attitude_adjustment/</code>. In the attitude_adjustment folder run <code>make prereq</code> and check what packages are needed and install them.</p>
+
+<p>For baby jumbo support, a <a href="https://lists.openwrt.org/pipermail/openwrt-devel/2012-June/015782.html">patch</a> was submitted the openwrt-devel mailing list. It hasn&#8217;t been accepted into trunk yet, although a <a href="https://dev.openwrt.org/ticket/11347">ticket</a> does exist for it. The file paths needed editing. An <a href="https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/655-MIPS-ath79-baby-jumbo-support.patch">amended version</a> can be found in the <a href="https://github.com/mattwillsh/openwrt-wndr3x00-rfc4638">github repo</a> that goes with this post.  Put this file in target/linux/ar71xx/patches-3.3</p>
+
+<p>For support in ppp and its pppoe plugin, this <a href="http://git.ozlabs.org/?p=ppp.git;a=commit;h=fd1dcdf758418f040da3ed801ab001b5e46854e7">commit</a> adds the necessary support.  The <a href="http://git.ozlabs.org/?p=ppp.git;a=patch;h=fd1dcdf758418f040da3ed801ab001b5e46854e7">raw patch</a> can be downloaded and given a suitable name and put in packages/ppp/patches.</p>
+
+<p>The firmware can now be build using the normal <code>make menuconfig</code>, <code>make</code> process. (See the <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">building</a> page  as linked above)</p>
+]]></content>
+  </entry>
   
 </feed>
