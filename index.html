@@ -110,9 +110,70 @@ $(document).ready(
 <p>With the arrival of BT&#8217;s Fibre-to-the-Cabinet (FTTC) offering, the telco moved away from PPPoA as the default connection protocol to PPPoE, dropping PPPoA support. When using the provided BT Homehub 3, a MTU of 1500 is supported as per <a href="https://tools.ietf.org/html/rfc4638">RFC 4638</a>
 , rather than the more usual 1492 bytes. Being able to use a MTU of 1500 bytes removes to need to use <a href="http://lartc.org/howto/lartc.cookbook.mtu-mss.html">MSS clamping</a> to work around problems with Path MTU discovery but it can create other problems. Having a larger MTU improves efficiency as more data can be transmitted in a single packet. So using a larger MTU is a no-brainer - or it would be if not for a couple of problems.</p>
 
+<ul>
+<li>A MTU of 1500 in the PPP session required the parent interface supports an MTU of 1508 (&#8216;baby jumbo&#8217; packets).</li>
+<li>RFC 4638 is not widely supported. I&#8217;ve yet to come across an off-the-shelf router than does.</li>
+</ul>
+
+
+<p>I&#8217;ve been running <a href="https://openwrt.org/">OpenWRT</a> on a <a href="http://www.netgear.co.uk/home/products/wirelessrouters/high-performance/WNDR3700.aspx">Netgear WNDR3700</a> for a while with MSS clamping and it&#8217;s be fine  - certainly the through put is good and it&#8217;s allowed me to use <a href="http://ipv6.he.net/">Hurricane Electric&#8217;s IPv6 tunnel</a>, update dynamic DNS with easy and provide a raft of monitoring. But due to the above issues, supporting a 1500 MTU over PPPoE isn&#8217;t straight forward. However, it is possible by using a couple of patches and compiling OpenWRT from source. As I found out, it&#8217;s not as scary as it sounds! This technique should work for the WNDR3700v1, v2 and the WNDR3800. I&#8217;ve based the work of the current stable version or OpenWRT 12.09 aka Attitude Adjustment. The <a href="http://wiki.openwrt.org/doc/howto/buildroot.exigence">Buildroot - Installation</a>, <a href="http://wiki.openwrt.org/toh/netgear/wndr3700">WNDR3700</a> and <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">Building OpenWrt for Netgear WNDR3700</a> pages are well worth reading.</p>
+
+<h2>Preparing the build environment</h2>
+
+<p>Firstly, you&#8217;ll need a machine to build OpenWRT. I&#8217;ve used Ubuntu 12.04 (precise) under <a href="http://vagrantup.com">Vagrant</a>, with just a basic Vagrantfile.</p>
+
+<p>Once the VM us up and running, the follow commands will install the neccasery software and checkout the OpenWRT source code.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c"># Make sure we have an up to date package index and install the build requirements</span>
+</span><span class='line'><span class="nv">$ </span>sudo apt-get update
+</span><span class='line'><span class="nv">$ </span>sudo apt-get install build-essential subversion git-core libncurses5-dev zlib1g-dev gawk flex quilt libssl-dev xsltproc libxml-parser-perl
+</span><span class='line'><span class="c"># Check out the source code and make sure all pre-requisites are satisfied.</span>
+</span><span class='line'><span class="nv">$ </span>svn co svn://svn.openwrt.org/openwrt/branches/attitude_adjustment/
+</span><span class='line'><span class="nv">$ </span><span class="nb">cd </span>attitude_adjustment
+</span><span class='line'><span class="nv">$ </span>make prereq
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If it&#8217;s ready to go the configuration menu will appear. Exit for now - time to install the patch files.</p>
+
+<h2>Patching for RFC 4638 support</h2>
+
+<p>For RFC 4638 - &#8216;baby jumbo&#8217; packet size - support, two patches are required.</p>
+
+<ol>
+<li>A patch to the ag71xx ethernet driver to allow an MTU of great 1508.</li>
+<li>A patch to the ppp client to enable RFC 4638 support.</li>
+</ol>
+
+
+<h3>Ethernet driver</h3>
+
+<p>For the ag71xx, a <a href="https://lists.openwrt.org/pipermail/openwrt-devel/2012-June/015782.html">patch</a> was submitted the openwrt-devel mailing list. It hasn&#8217;t been accepted into trunk yet, although a <a href="https://dev.openwrt.org/ticket/11347">ticket</a> does exist for it. As is it on the list, file paths needed editing for the patch to work with OpenWRT 12.09 . An <a href="https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/655-MIPS-ath79-baby-jumbo-support.patch">amended version</a> can be found in the <a href="https://github.com/mattwillsh/openwrt-wndr3x00-rfc4638">github repo</a> that goes with this post.  Put this file in <code>target/linux/ar71xx/patches-3.3</code></p>
+
+<h3>ppp client software</h3>
+
+<p>For support in ppp and its pppoe plugin, this <a href="http://git.ozlabs.org/?p=ppp.git;a=commit;h=fd1dcdf758418f040da3ed801ab001b5e46854e7">commit</a> adds the necessary features. <a href="https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/600-ppp-rfc4638.patch">A version</a> is available in the github repo that goes with this article. The file needs to go in <code>package/ppp/patches</code>.</p>
+
+<p>If you clone the git repo into the same folder as VM&#8217;s Vagrantfile, you can run the following:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cp /vagrant/openwrt-wndr3x00-rfc4638/655-MIPS-ath79-baby-jumbo-support.patch ~/attitude_adjustment/target/linux/ar71xx/patches-3.3/
+</span><span class='line'><span class="nv">$ </span>cp /vagrant/openwrt-wndr3x00-rfc4638/600-ppp-rfc4638.patch ~/attitude_adjustment/package/ppp/patches/
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The firmware can now be build using the normal <code>make menuconfig</code>, <code>make</code> process. (See the <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">building</a> page  as linked above).  I&#8217;ll cover the options I&#8217;ve used to add dynamic DNS updates, OSPF routing and IPv6 in my next post.</p>
 
 		
-		<a href="/blog/2013/04/14/patching-openwrt-for-bt-fttc/" class="more-link">Read on &rarr;</a>
+		
 	</div>
 
 

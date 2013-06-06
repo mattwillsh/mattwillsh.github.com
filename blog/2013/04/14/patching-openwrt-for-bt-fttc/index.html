@@ -101,9 +101,6 @@ $(document).ready(
 <p>With the arrival of BT&#8217;s Fibre-to-the-Cabinet (FTTC) offering, the telco moved away from PPPoA as the default connection protocol to PPPoE, dropping PPPoA support. When using the provided BT Homehub 3, a MTU of 1500 is supported as per <a href="https://tools.ietf.org/html/rfc4638">RFC 4638</a>
 , rather than the more usual 1492 bytes. Being able to use a MTU of 1500 bytes removes to need to use <a href="http://lartc.org/howto/lartc.cookbook.mtu-mss.html">MSS clamping</a> to work around problems with Path MTU discovery but it can create other problems. Having a larger MTU improves efficiency as more data can be transmitted in a single packet. So using a larger MTU is a no-brainer - or it would be if not for a couple of problems.</p>
 
-<!-- more -->
-
-
 <ul>
 <li>A MTU of 1500 in the PPP session required the parent interface supports an MTU of 1508 (&#8216;baby jumbo&#8217; packets).</li>
 <li>RFC 4638 is not widely supported. I&#8217;ve yet to come across an off-the-shelf router than does.</li>
