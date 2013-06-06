@@ -4,7 +4,7 @@
   <title><![CDATA[Matt Willsher's blog]]></title>
   <link href="http://mattwillsh.github.com/atom.xml" rel="self"/>
   <link href="http://mattwillsh.github.com/"/>
-  <updated>2013-06-06T15:02:09+01:00</updated>
+  <updated>2013-06-06T15:02:57+01:00</updated>
   <id>http://mattwillsh.github.com/</id>
   <author>
     <name><![CDATA[Matt Willsher]]></name>
@@ -44,59 +44,44 @@
 <span class='line-number'>5</span>
 <span class='line-number'>6</span>
 <span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
 </pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="c"># Make sure we have an up to date package index and install the build requirements</span>
 </span><span class='line'><span class="nv">$ </span>sudo apt-get update
 </span><span class='line'><span class="nv">$ </span>sudo apt-get install build-essential subversion git-core libncurses5-dev zlib1g-dev gawk flex quilt libssl-dev xsltproc libxml-parser-perl
 </span><span class='line'><span class="c"># Check out the source code and make sure all pre-requisites are satisfied.</span>
 </span><span class='line'><span class="nv">$ </span>svn co svn://svn.openwrt.org/openwrt/branches/attitude_adjustment/
 </span><span class='line'><span class="nv">$ </span><span class="nb">cd </span>attitude_adjustment
-</span><span class='line'><span class="nv">$ </span>make prereq<span class="sb">```</span>
-</span><span class='line'>
-</span><span class='line'>If it<span class="s1">&#39;s ready to go the configuration menu will appear. Exit for now - time to install the patch files.</span>
-</span><span class='line'>
-</span><span class='line'><span class="s1">Patching for RFC 4638 support</span>
-</span><span class='line'><span class="s1">-----------------------------</span>
-</span><span class='line'>
-</span><span class='line'><span class="s1">For RFC 4638 - &#39;</span>baby jumbo<span class="s1">&#39; packet size - support, two patches are required. </span>
-</span><span class='line'>
-</span><span class='line'><span class="s1">1. A patch to the ag71xx ethernet driver to allow an MTU of great 1508.</span>
-</span><span class='line'><span class="s1">2. A patch to the ppp client to enable RFC 4638 support.</span>
-</span><span class='line'>
-</span><span class='line'><span class="s1">### Ethernet driver</span>
-</span><span class='line'>
-</span><span class='line'><span class="s1">For the ag71xx, a [patch](https://lists.openwrt.org/pipermail/openwrt-devel/2012-June/015782.html) was submitted the openwrt-devel mailing list. It hasn&#39;</span>t been accepted into trunk yet, although a <span class="o">[</span>ticket<span class="o">](</span>https://dev.openwrt.org/ticket/11347<span class="o">)</span> does exist <span class="k">for </span>it. As is it on the list, file paths needed editing <span class="k">for </span>the patch to work with OpenWRT 12.09 . An <span class="o">[</span>amended version<span class="o">](</span>https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/655-MIPS-ath79-baby-jumbo-support.patch<span class="o">)</span> can be found in the <span class="o">[</span>github repo<span class="o">](</span>https://github.com/mattwillsh/openwrt-wndr3x00-rfc4638<span class="o">)</span> that goes with this post.  Put this file in <span class="sb">```</span>target/linux/ar71xx/patches-3.3<span class="sb">```</span>
-</span><span class='line'>
-</span><span class='line'><span class="c">### ppp client software</span>
-</span><span class='line'>
-</span><span class='line'>For support in ppp and its pppoe plugin, this <span class="o">[</span>commit<span class="o">](</span>http://git.ozlabs.org/?p<span class="o">=</span>ppp.git;a<span class="o">=</span>commit;h<span class="o">=</span>fd1dcdf758418f040da3ed801ab001b5e46854e7<span class="o">)</span> adds the necessary features. <span class="o">[</span>A version<span class="o">](</span>https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/600-ppp-rfc4638.patch<span class="o">)</span> is available in the github repo that goes with this article. The file needs to go in <span class="sb">```</span>package/ppp/patches<span class="sb">```</span>.
-</span><span class='line'>
-</span><span class='line'>If you clone the git repo into the same folder as VM<span class="err">&#39;</span>s Vagrantfile, you can run the following:
+</span><span class='line'><span class="nv">$ </span>make prereq
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p> sh
-$ cp /vagrant/openwrt-wndr3x00-rfc4638/655-MIPS-ath79-baby-jumbo-support.patch ~/attitude_adjustment/target/linux/ar71xx/patches-3.3/
-$ cp /vagrant/openwrt-wndr3x00-rfc4638/600-ppp-rfc4638.patch ~/attitude_adjustment/package/ppp/patches/&#8220;`</p>
+<p>If it&#8217;s ready to go the configuration menu will appear. Exit for now - time to install the patch files.</p>
+
+<h2>Patching for RFC 4638 support</h2>
+
+<p>For RFC 4638 - &#8216;baby jumbo&#8217; packet size - support, two patches are required.</p>
+
+<ol>
+<li>A patch to the ag71xx ethernet driver to allow an MTU of great 1508.</li>
+<li>A patch to the ppp client to enable RFC 4638 support.</li>
+</ol>
+
+
+<h3>Ethernet driver</h3>
+
+<p>For the ag71xx, a <a href="https://lists.openwrt.org/pipermail/openwrt-devel/2012-June/015782.html">patch</a> was submitted the openwrt-devel mailing list. It hasn&#8217;t been accepted into trunk yet, although a <a href="https://dev.openwrt.org/ticket/11347">ticket</a> does exist for it. As is it on the list, file paths needed editing for the patch to work with OpenWRT 12.09 . An <a href="https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/655-MIPS-ath79-baby-jumbo-support.patch">amended version</a> can be found in the <a href="https://github.com/mattwillsh/openwrt-wndr3x00-rfc4638">github repo</a> that goes with this post.  Put this file in <code>target/linux/ar71xx/patches-3.3</code></p>
+
+<h3>ppp client software</h3>
+
+<p>For support in ppp and its pppoe plugin, this <a href="http://git.ozlabs.org/?p=ppp.git;a=commit;h=fd1dcdf758418f040da3ed801ab001b5e46854e7">commit</a> adds the necessary features. <a href="https://raw.github.com/mattwillsh/openwrt-wndr3x00-rfc4638/master/600-ppp-rfc4638.patch">A version</a> is available in the github repo that goes with this article. The file needs to go in <code>package/ppp/patches</code>.</p>
+
+<p>If you clone the git repo into the same folder as VM&#8217;s Vagrantfile, you can run the following:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sh'><span class='line'><span class="nv">$ </span>cp /vagrant/openwrt-wndr3x00-rfc4638/655-MIPS-ath79-baby-jumbo-support.patch ~/attitude_adjustment/target/linux/ar71xx/patches-3.3/
+</span><span class='line'><span class="nv">$ </span>cp /vagrant/openwrt-wndr3x00-rfc4638/600-ppp-rfc4638.patch ~/attitude_adjustment/package/ppp/patches/
+</span></code></pre></td></tr></table></div></figure>
+
 
 <p>The firmware can now be build using the normal <code>make menuconfig</code>, <code>make</code> process. (See the <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">building</a> page  as linked above).  I&#8217;ll cover the options I&#8217;ve used to add dynamic DNS updates, OSPF routing and IPv6 in my next post.</p>
 ]]></content>

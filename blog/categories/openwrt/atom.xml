@@ -4,7 +4,7 @@
   <title><![CDATA[Category: OpenWRT | Matt Willsher's blog]]></title>
   <link href="http://mattwillsh.github.com/blog/categories/openwrt/atom.xml" rel="self"/>
   <link href="http://mattwillsh.github.com/"/>
-  <updated>2013-06-06T15:02:09+01:00</updated>
+  <updated>2013-06-06T15:02:57+01:00</updated>
   <id>http://mattwillsh.github.com/</id>
   <author>
     <name><![CDATA[Matt Willsher]]></name>
@@ -48,7 +48,8 @@ $ sudo apt-get install build-essential subversion git-core libncurses5-dev zlib1
 
 <p>$ svn co svn://svn.openwrt.org/openwrt/branches/attitude_adjustment/
 $ cd attitude_adjustment
-$ make prereq```</p>
+$ make prereq
+```</p>
 
 <p>If it's ready to go the configuration menu will appear. Exit for now - time to install the patch files.</p>
 
@@ -74,7 +75,8 @@ $ make prereq```</p>
 
 <p><code>sh
 $ cp /vagrant/openwrt-wndr3x00-rfc4638/655-MIPS-ath79-baby-jumbo-support.patch ~/attitude_adjustment/target/linux/ar71xx/patches-3.3/
-$ cp /vagrant/openwrt-wndr3x00-rfc4638/600-ppp-rfc4638.patch ~/attitude_adjustment/package/ppp/patches/</code></p>
+$ cp /vagrant/openwrt-wndr3x00-rfc4638/600-ppp-rfc4638.patch ~/attitude_adjustment/package/ppp/patches/
+</code></p>
 
 <p>The firmware can now be build using the normal <code>make menuconfig</code>, <code>make</code> process. (See the <a href="http://wiki.openwrt.org/doc/howtobuild/build.wndr3700">building</a> page  as linked above).  I'll cover the options I've used to add dynamic DNS updates, OSPF routing and IPv6 in my next post.</p>
 ]]></content>
